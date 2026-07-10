@@ -67,7 +67,7 @@
 
         // Redirect to WhatsApp
         function redirectToWhatsApp() {
-            const phoneNumber = "6285733390830"; 
+            const phoneNumber = "62895405779875"; 
             const textMessage = `Halo Lucky Proxy, saya ingin membeli produk berikut:\n\n` +
                                 `• Produk: ${selectedProduct}\n` +
                                 `• Harga: ${selectedPrice}\n\n` +
