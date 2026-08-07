@@ -45,16 +45,16 @@ button,
   height: 50px;
   white-space: nowrap;
 }
-        /* Samakan warna tombol Android dengan Windows */
-.buy-android-proxy {
-  background-color: #10b981 !important; /* warna hijau sama Windows */
-}
-
-/* Saat di-hover/klik tetap warna yang sama */
+   /* Paksa tombol Android selalu hijau di SEMUA keadaan */
+.buy-android-proxy,
 .buy-android-proxy:hover,
 .buy-android-proxy:focus,
-.buy-android-proxy:active {
+.buy-android-proxy:active,
+.buy-android-proxy:focus-visible {
   background-color: #10b981 !important;
+  color: white !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
     </style>
 </head>
