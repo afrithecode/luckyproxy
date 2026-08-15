@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rekap Pembelian Proxy Bulanan</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background: #0f172a; color: #e2e8f0; font-family: system-ui, -apple-system, sans-serif; }
+    .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); }
+    .highlight-box { background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.05)); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .hidden-section { display: none; }
+  </style>
+</head>
+<body class="min-h-screen py-10 px-4 sm:px-6">
+
+<div class="max-w-4xl mx-auto">
+
+  <!-- ============= HALAMAN LOGIN ============= -->
+  <div id="loginSection">
+    <div class="glass rounded-3xl p-8 border border-emerald-500/20 max-w-md mx-auto text-center">
+      <h2 class="text-2xl font-bold text-white mb-6">🔐 Akses Rekap Pembelian</h2>
+      <p class="text-gray-400 text-sm mb-6">Masukkan Nama & Kode Akses untuk melihat data</p>
+      
+      <div class="space-y-4">
+        <input type="text" id="adminName" placeholder="Nama Pengguna Akses" 
+          class="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:outline-none focus:border-emerald-500">
+        <input type="password" id="accessCode" placeholder="Kode Akses" 
+          class="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white focus:outline-none focus:border-emerald-500">
+        <button onclick="doLogin()" 
+          class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all mt-2">
+          Masuk & Lihat Rekap
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============= HALAMAN REKAP (Tersembunyi) ============= -->
+  <div id="rekapSection" class="hidden-section">
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <span class="text-gray-400 text-sm">👤 Pengakses: <span id="currentAdmin" class="text-white font-medium">—</span></span>
+      </div>
+      <button onclick="doLogout()" class="text-sm text-gray-400 hover:text-red-400">
+        <i class="fa-solid fa-right-from-bracket mr-1"></i> Keluar
+      </button>
+    </div>
+
+    <div class="text-center mb-8">
+      <h1 class="text-2xl sm:text-3xl font-bold text-white">📋 Rekap Pembelian Proxy Bulanan</h1>
+      <p class="text-gray-400 mt-2">Semua data pembelian & masa aktif langganan</p>
+    </div>
+
+    <!-- 📊 STATISTIK HIGHLIGHT -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+      <div class="highlight-box rounded-2xl p-4 text-center">
+        <div class="text-2xl font-bold text-emerald-400" id="totalOrders">0</div>
+        <div class="text-xs text-gray-400 mt-1">Total Pembelian</div>
+      </div>
+      <div class="highlight-box rounded-2xl p-4 text-center">
+        <div class="text-2xl font-bold text-emerald-400" id="totalSpent">Rp 0</div>
+        <div class="text-xs text-gray-400 mt-1">Total Pendapatan</div>
+      </div>
+      <div class="highlight-box rounded-2xl p-4 text-center">
+        <div class="text-2xl font-bold text-emerald-400" id="activeCount">0</div>
+        <div class="text-xs text-gray-400 mt-1">Masih Aktif</div>
+      </div>
+      <div class="highlight-box rounded-2xl p-4 text-center">
+        <div class="text-lg sm:text-xl font-bold text-yellow-400" id="expiringCount">0</div>
+        <div class="text-xs text-gray-400 mt-1">Hampir Habis</div>
+      </div>
+    </div>
+
+    <!-- 📋 TABEL DATA -->
+    <div class="glass rounded-3xl p-6 border border-emerald-500/20">
+      <h3 class="text-lg font-bold text-white mb-5 flex items-center gap-2">
+        <i class="fa-solid fa-table-list text-emerald-400"></i>
+        Daftar Pembelian & Masa Aktif
+      </h3>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-700 text-gray-400">
+              <th class="text-left py-3 px-2">Nama Pembeli</th>
+              <th class="text-left py-3 px-2">Produk</th>
+              <th class="text-left py-3 px-2">Harga</th>
+              <th class="text-left py-3 px-2">Tgl Pembelian</th>
+              <th class="text-left py-3 px-2">Tgl Habis</th>
+              <th class="text-left py-3 px-2">Sisa Waktu</th>
+              <th class="text-left py-3 px-2">Status</th>
+            </tr>
+          </thead>
+          <tbody id="purchaseTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== DAFTAR YANG PUNYA AKSES ==========
+const allowedUsers = [
+  { username: "admin", accessCode: "lucky2026" },
+  { username: "pemilik", accessCode: "proxy123" }
+  // Tambah pengguna lain di sini
+];
+
+// ========== DATA SEMUA PEMBELIAN ==========
+const purchaseDatabase = [
+  { buyerName: "Budi Santoso", product: "Proxy Android Bulanan", price: 50000, purchaseDate: "2026-08-16" },
+  { buyerName: "Siti Aisyah", product: "Proxy Windows Bulanan", price: 50000, purchaseDate: "2026-08-10" },
+  { buyerName: "Andi Pratama", product: "Proxy Android Bulanan", price: 50000, purchaseDate: "2026-07-20" }
+  // Tambah data pembelian di sini
+];
+
+// LOGIN CEK AKSES
+function doLogin() {
+  const name = document.getElementById('adminName').value.trim();
+  const code = document.getElementById('accessCode').value.trim();
+
+  const user = allowedUsers.find(u => 
+    u.username.toLowerCase() === name.toLowerCase() && u.accessCode === code
+  );
+
+  if (!user) return alert('❌ Nama atau Kode Akses salah!');
+
+  document.getElementById('currentAdmin').textContent = name;
+  document.getElementById('loginSection').classList.add('hidden-section');
+  document.getElementById('rekapSection').classList.remove('hidden-section');
+  renderRekap();
+}
+
+// LOGOUT
+function doLogout() {
+  document.getElementById('adminName').value = '';
+  document.getElementById('accessCode').value = '';
+  document.getElementById('loginSection').classList.remove('hidden-section');
+  document.getElementById('rekapSection').classList.add('hidden-section');
+}
+
+// HITUNG SISA WAKTU (30 HARI)
+function getExpiryInfo(purchaseDateStr) {
+  const purchaseDate = new Date(purchaseDateStr);
+  const expireDate = new Date(purchaseDate);
+  expireDate.setDate(purchaseDate.getDate() + 30);
+  const now = new Date();
+  const diffMs = expireDate - now;
+
+  if (diffMs <= 0) {
+    return { days: 0, expireDate, status: 'Kadaluwarsa', color: 'bg-red-500/20 text-red-400' };
+  }
+  const days = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  if (days <= 7) {
+    return { days, expireDate, status: 'Hampir Habis', color: 'bg-yellow-500/20 text-yellow-400' };
+  }
+  return { days, expireDate, status: 'Aktif', color: 'bg-emerald-500/20 text-emerald-400' };
+}
+
+// TAMPILKAN SEMUA DATA
+function renderRekap() {
+  let total = 0, activeCount = 0, expiringCount = 0;
+  let html = '';
+
+  purchaseDatabase.forEach(item => {
+    total += item.price;
+    const info = getExpiryInfo(item.purchaseDate);
+    if (info.status === 'Aktif') activeCount++;
+    if (info.status === 'Hampir Habis') expiringCount++;
+
+    const purchaseDate = new Date(item.purchaseDate).toLocaleDateString('id-ID', {day:'2-digit', month:'2-digit', year:'numeric'});
+    const expireDate = info.expireDate.toLocaleDateString('id-ID', {day:'2-digit', month:'2-digit', year:'numeric'});
+
+    html += `
+      <tr class="border-b border-gray-800/50 text-gray-300">
+        <td class="py-3 px-2">${item.buyerName}</td>
+        <td class="py-3 px-2">${item.product}</td>
+        <td class="py-3 px-2">Rp ${item.price.toLocaleString('id-ID')}</td>
+        <td class="py-3 px-2">${purchaseDate}</td>
+        <td class="py-3 px-2">${expireDate}</td>
+        <td class="py-3 px-2 font-medium ${info.days<=7?'text-yellow-400':'text-emerald-400'}">${info.days} Hari</td>
+        <td class="py-3 px-2"><span class="px-2 py-0.5 rounded-full text-xs ${info.color}">${info.status}</span></td>
+      </tr>
+    `;
+  });
+
+  document.getElementById('totalOrders').textContent = purchaseDatabase.length;
+  document.getElementById('totalSpent').textContent = `Rp ${total.toLocaleString('id-ID')}`;
+  document.getElementById('activeCount').textContent = activeCount;
+  document.getElementById('expiringCount').textContent = expiringCount;
+  document.getElementById('purchaseTable').innerHTML = html;
+}
+</script>
+
+</body>
+</html>
