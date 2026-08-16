@@ -7,216 +7,103 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <style>
-        body {
-            background: #0f172a;
-            color: #e2e8f0;
-            font-family: system-ui, -apple-system, sans-serif;
-        }
-        .glass {
-            background: rgba(15, 23, 42, 0.7);
-            backdrop-filter: blur(12px);
-        }
-        .hidden-section {
-            display: none;
-        }
+        body { background: #0f172a; color: #e2e8f0; font-family: system-ui; }
+        .glass { background: rgba(15,23,42,0.7); backdrop-filter: blur(12px); }
+        .hidden-section { display: none; }
     </style>
 </head>
-<body class="min-h-screen py-10 px-4 sm:px-6">
+<body class="min-h-screen py-10 px-4">
 
 <div class="max-w-4xl mx-auto">
 
-    <!-- ================= HALAMAN LOGIN / MASUK ================= -->
+    <!-- HALAMAN LOGIN -->
     <div id="loginSection">
         <div class="glass rounded-3xl p-8 border border-emerald-500/20 max-w-md mx-auto">
             <h2 class="text-2xl font-bold text-white mb-6">🔐 Akses Rekap Pembelian</h2>
-            <p class="text-gray-400 text-sm mb-6">Masukkan Kode Akses untuk melihat data</p>
-            <div class="space-y-4">
-                <input type="text" id="adminName" placeholder="Nama Pengguna Akses"
-                    class="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white">
-                <input type="password" id="accessCode" placeholder="Kode Akses"
-                    class="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white">
-                <button onclick="doLogin()"
-                    class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold">
-                    Masuk & Lihat Rekap
-                </button>
-            </div>
+            <input type="password" id="kodeAkses" placeholder="Masukkan Kode Owner"
+                class="w-full px-4 py-3 rounded-xl bg-gray-800/50 border border-gray-700 text-white mb-4">
+            <button onclick="bukaRekap()"
+                class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold">
+                Lihat Semua Data
+            </button>
         </div>
     </div>
 
-    <!-- ================= HALAMAN REKAP (Tersembunyi) ================= -->
+    <!-- HALAMAN REKAP -->
     <div id="rekapSection" class="hidden-section">
-        <div class="flex justify-between items-center mb-6">
-            <div>
-                <span class="text-gray-400 text-sm">👤 Pengakses: <span id="currentAdmin">-</span></span>
-            </div>
-            <button onclick="doLogout()" class="text-sm text-gray-400 hover:text-white">
-                <i class="fa-solid fa-right-from-bracket mr-1"></i> Keluar
-            </button>
-        </div>
-
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold mb-2">📋 Rekap Pembelian Proxy Bulanan</h1>
-            <p class="text-gray-400">Semua data pembelian & masa aktif langganan</p>
-        </div>
-
-        <!-- Kotak Ringkasan -->
-        <div class="grid grid-cols-2 gap-4 mb-8">
-            <div class="glass rounded-3xl p-6 border border-emerald-500/20 text-center">
-                <div id="totalPembelian" class="text-4xl font-bold text-emerald-400 mb-2">0</div>
-                <div class="text-gray-400">Total Pembelian</div>
-            </div>
-            <div class="glass rounded-3xl p-6 border border-emerald-500/20 text-center">
-                <div id="totalPendapatan" class="text-4xl font-bold text-emerald-400 mb-2">Rp 0</div>
-                <div class="text-gray-400">Total Pendapatan</div>
-            </div>
-            <div class="glass rounded-3xl p-6 border border-emerald-500/20 text-center">
-                <div id="masihAktif" class="text-4xl font-bold text-emerald-400 mb-2">0</div>
-                <div class="text-gray-400">Masih Aktif</div>
-            </div>
-            <div class="glass rounded-3xl p-6 border border-yellow-500/20 text-center">
-                <div id="hampirHabis" class="text-4xl font-bold text-yellow-400 mb-2">0</div>
-                <div class="text-gray-400">Hampir Habis</div>
-            </div>
-        </div>
-
-        <!-- TABEL DAFTAR PEMBELIAN -->
+        <h1 class="text-3xl font-bold text-center mb-8">📋 Rekap Pembelian Proxy</h1>
+        
+        <!-- TABEL -->
         <div class="glass rounded-3xl p-6 border border-emerald-500/20">
-            <h2 class="text-xl font-bold mb-6">📊 Daftar Pembelian & Masa Aktif</h2>
-            
-            <!-- JUDUL KOLOM TABEL -->
-            <div class="grid grid-cols-5 gap-4 pb-3 border-b border-gray-700 font-bold text-gray-300">
+            <div class="grid grid-cols-4 gap-4 pb-3 border-b border-gray-700 font-bold">
                 <div>Nama Pembeli</div>
                 <div>Produk</div>
                 <div>Harga</div>
-                <div>Tgl Pembelian</div>
-                <div>Status</div>
+                <div>Tanggal</div>
             </div>
-
-            <!-- ✅ TEMPAT DATA MASUK KE DALAM TABEL -->
-            <div id="daftarRekap">
-                <!-- Data pembeli AKAN MUNCUL DISINI otomatis sejajar kolom -->
-            </div>
+            <div id="daftarRekap"></div>
         </div>
     </div>
-
 </div>
 
-<!-- ================= SCRIPT SEMUA FUNGSI ================= -->
 <script>
-// === UBAH KODE RAHASIA OWNER SESUAI KEINGINANMU ===
-const KODE_ADMIN = 'ADMIN123'; // Ganti dengan kode rahasia kamu
+// === 🔑 PENGATURAN ===
+const URL_SERVER = 'https://script.google.com/d/1S4x1PXMPcEquu8OCc0x2VdRIWzXmP2B4ob7HJrt_4clKjZwgO0N4BGZx/edit?usp=sharing'; // Ganti dengan URL dari Google Apps Script
+const KODE_OWNER = 'ADMIN123'; // Ganti kode rahasia kamu
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const params = new URLSearchParams(window.location.search);
     const nama = params.get('nama');
     const produk = params.get('produk') || 'Proxy Bulanan';
     const harga = params.get('harga') || '50.000';
-    const mode = params.get('mode');
-    const kode = params.get('kode');
 
-    // === LINK PEMBELI: Buka link ?nama=... → otomatis simpan & tampil terima kasih ===
+    // === PEMBELI: Simpan data ke server ===
     if (nama) {
-        simpanKeDaftar(nama, produk, harga);
-        tampilkanHalamanPembeli(nama);
-        return;
-    }
-
-    // === LINK OWNER: Buka link ?mode=admin&kode=... → langsung lihat semua daftar ===
-    if (mode === 'admin' && kode === KODE_ADMIN) {
-        document.getElementById('loginSection').style.display = 'none';
-        document.getElementById('rekapSection').classList.remove('hidden-section');
-        document.getElementById('currentAdmin').textContent = 'Owner';
-        tampilkanSemuaDaftar();
-        return;
+        await simpanKeServer(nama, produk, harga);
+        document.body.innerHTML = `
+            <div class="max-w-md mx-auto mt-20 p-6 text-center glass rounded-3xl border border-emerald-500/20">
+                <h2 class="text-2xl font-bold text-emerald-400 mb-4">✅ Terima Kasih!</h2>
+                <p class="text-lg">Halo, <strong>${nama}</strong>!</p>
+                <p class="text-gray-400">Data pembelian sudah tercatat di server.</p>
+            </div>`;
     }
 });
 
-// === FUNGSI SIMPAN DATA PEMBELI ===
-function simpanKeDaftar(namaPembeli, namaProduk, hargaProduk) {
-    let daftar = JSON.parse(localStorage.getItem('daftarPembelian') || '[]');
-    daftar.unshift({
-        nama: namaPembeli,
-        produk: namaProduk,
-        harga: hargaProduk,
-        waktu: new Date().toLocaleDateString('id-ID'),
-        status: 'Aktif'
+// === SIMPAN DATA KE SERVER ===
+async function simpanKeServer(nama, produk, harga) {
+    await fetch(URL_SERVER, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            nama, produk, harga,
+            tanggal: new Date().toLocaleDateString('id-ID')
+        })
     });
-    localStorage.setItem('daftarPembelian', JSON.stringify(daftar));
 }
 
-// === HALAMAN YANG DILIHAT PEMBELI ===
-function tampilkanHalamanPembeli(nama) {
-    document.body.innerHTML = `
-        <div class="max-w-md mx-auto mt-20 p-6 text-center glass rounded-3xl border border-emerald-500/20">
-            <h2 class="text-2xl font-bold text-emerald-400 mb-4">✅ Terima Kasih!</h2>
-            <p class="text-lg mb-2">Halo, <strong>${nama}</strong>!</p>
-            <p class="text-gray-400">Data pembelian Anda sudah tercatat di rekap.</p>
-            <br>
-            <p class="text-sm text-gray-500">Anda bisa menutup halaman ini</p>
-        </div>
-    `;
-}
+// === BUKA REKAP UNTUK OWNER ===
+async function bukaRekap() {
+    const kode = document.getElementById('kodeAkses').value;
+    if (kode !== KODE_OWNER) return alert('Kode salah!');
 
-// === TAMPILKAN SEMUA DATA KE DALAM TABEL ===
-function tampilkanSemuaDaftar() {
-    const daftar = JSON.parse(localStorage.getItem('daftarPembelian') || '[]');
+    document.getElementById('loginSection').style.display = 'none';
+    document.getElementById('rekapSection').classList.remove('hidden-section');
+
+    // Ambil semua data dari server
+    const res = await fetch(URL_SERVER);
+    const data = await res.json();
     const wadah = document.getElementById('daftarRekap');
-    if (!wadah) return;
 
-    // Kosongkan dulu
-    wadah.innerHTML = '';
-
-    // Hitung ringkasan
-    let totalHarga = 0;
-    let aktif = 0, habis = 0;
-
-    // Masukkan setiap data ke DALAM TABEL sejajar kolom
-    daftar.forEach(item => {
-        const baris = document.createElement('div');
-        baris.className = "grid grid-cols-5 gap-4 py-3 border-b border-gray-700 text-sm";
-        baris.innerHTML = `
-            <div class="font-bold">${item.nama || '-'}</div>
-            <div>${item.produk || '-'}</div>
-            <div>Rp ${item.harga || '-'}</div>
-            <div>${item.waktu || '-'}</div>
-            <div class="text-emerald-400">${item.status || 'Aktif'}</div>
-        `;
-        wadah.appendChild(baris);
-
-        // Hitung total
-        const hargaBersih = String(item.harga || '0').replace(/\./g, '');
-        totalHarga += parseInt(hargaBersih) || 0;
-        aktif++;
-    });
-
-    // Tampilkan angka ringkasan
-    document.getElementById('totalPembelian').textContent = daftar.length;
-    document.getElementById('totalPendapatan').textContent = 'Rp ' + totalHarga.toLocaleString('id-ID');
-    document.getElementById('masihAktif').textContent = aktif;
-    document.getElementById('hampirHabis').textContent = habis;
-}
-
-// === FUNGSI LOGIN BIASA ===
-function doLogin() {
-    const nama = document.getElementById('adminName').value.trim();
-    const kode = document.getElementById('accessCode').value.trim();
-    
-    if (kode === KODE_ADMIN) {
-        document.getElementById('loginSection').style.display = 'none';
-        document.getElementById('rekapSection').classList.remove('hidden-section');
-        document.getElementById('currentAdmin').textContent = nama || 'Admin';
-        tampilkanSemuaDaftar();
-    } else {
-        alert('Kode akses salah!');
-    }
-}
-
-// === FUNGSI KELuar ===
-function doLogout() {
-    localStorage.clear(); // Hapus data sementara
-    location.reload();
+    wadah.innerHTML = data.map(item => `
+        <div class="grid grid-cols-4 gap-4 py-3 border-b border-gray-700 text-sm">
+            <div class="font-bold">${item[0]}</div>
+            <div>${item[1]}</div>
+            <div>Rp ${item[2]}</div>
+            <div>${item[3]}</div>
+        </div>
+    `).join('');
 }
 </script>
-
 </body>
 </html>
