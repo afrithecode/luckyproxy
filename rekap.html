@@ -193,38 +193,75 @@ function renderRekap() {
 }
 </script>
 <script>
+const KODE_ADMIN = 'proxy1923'; // Ganti dengan kode rahasia kamu
+
 document.addEventListener('DOMContentLoaded', () => {
-  // 1. Ambil nama dari link
   const params = new URLSearchParams(window.location.search);
-  const namaLink = params.get('nama');
+  const nama = params.get('nama');
+  const mode = params.get('mode');
+  const kode = params.get('kode');
 
-  if (namaLink) {
-    // 2. Otomatis isi kolom nama
-    const inputNama = document.getElementById('adminName');
-    if (inputNama) inputNama.value = namaLink;
-
-    // 3. Simpan nama untuk tampil setelah login
-    localStorage.setItem('namaOtomatis', namaLink);
+  // === MODE PEMBELI: Simpan nama & tampilkan ucapan terima kasih ===
+  if (nama) {
+    simpanKeDaftar(nama);
+    tampilkanHalamanPembeli(nama);
+    return;
   }
 
-  // === Tambahkan fungsi simpan ke daftar saat login ===
-  const tombolMasuk = document.querySelector('button[onclick="doLogin()"]');
-  if (tombolMasuk) {
-    tombolMasuk.addEventListener('click', () => {
-      const namaSimpan = localStorage.getItem('namaOtomatis');
-      if (namaSimpan) {
-        let daftar = JSON.parse(localStorage.getItem('daftarPembelian') || '[]');
-        daftar.push({
-          nama: namaSimpan,
-          waktu: new Date().toLocaleString('id-ID')
-        });
-        localStorage.setItem('daftarPembelian', JSON.stringify(daftar));
-        localStorage.removeItem('namaOtomatis'); // Hapus agar tidak dobel
-      }
-    });
+  // === MODE OWNER: Lihat SEMUA daftar rekap ===
+  if (mode === 'admin' && kode === KODE_ADMIN) {
+    document.getElementById('loginSection').style.display = 'none';
+    document.getElementById('rekapSection').classList.remove('hidden-section');
+    tampilkanSemuaDaftar();
+    return;
   }
+
+  // === Jika tidak ada parameter: tampilkan halaman biasa ===
 });
-                                </script>
+
+// === FUNGSI SIMPAN NAMA PEMBELI ===
+function simpanKeDaftar(namaPembeli) {
+  let daftar = JSON.parse(localStorage.getItem('daftarPembelian') || '[]');
+  daftar.unshift({
+    nama: namaPembeli,
+    waktu: new Date().toLocaleString('id-ID')
+  });
+  localStorage.setItem('daftarPembelian', JSON.stringify(daftar));
+}
+
+// === HALAMAN UNTUK PEMBELI ===
+function tampilkanHalamanPembeli(nama) {
+  document.body.innerHTML = `
+    <div class="max-w-md mx-auto mt-20 p-6 text-center">
+      <h2 class="text-2xl font-bold text-emerald-400 mb-4">✅ Terima Kasih!</h2>
+      <p class="text-lg mb-2">Halo, <strong>${nama}</strong>!</p>
+      <p class="text-gray-400">Nama Anda sudah tercatat di daftar rekap pembelian.</p>
+      <br>
+      <p class="text-sm text-gray-500">Anda bisa menutup halaman ini</p>
+    </div>
+  `;
+}
+
+// === TAMPILKAN SEMUA DAFTAR UNTUK OWNER ===
+function tampilkanSemuaDaftar() {
+  const daftar = JSON.parse(localStorage.getItem('daftarPembelian') || '[]');
+  const wadah = document.getElementById('daftarRekap');
+  if (!wadah) return;
+
+  if (daftar.length === 0) {
+    wadah.innerHTML = '<p class="text-gray-400 text-center">Belum ada data pembelian</p>';
+    return;
+  }
+
+  wadah.innerHTML = daftar.map((item, nomor) => `
+    <div class="py-3 border-b border-gray-700">
+      <span class="text-emerald-400 mr-2">${nomor + 1}.</span>
+      <span class="font-bold">${item.nama}</span>
+      <span class="text-gray-400 text-sm ml-3">${item.waktu}</span>
+    </div>
+  `).join('');
+}
+</script>
   
   
 </body>
