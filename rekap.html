@@ -192,6 +192,27 @@ function renderRekap() {
   document.getElementById('purchaseTable').innerHTML = html;
 }
 </script>
+<script>
+// Ambil nama dari link
+const params = new URLSearchParams(window.location.search);
+const namaPembeli = params.get('nama') || 'Pembeli';
 
+// Simpan ke daftar rekap (sementara)
+let daftar = JSON.parse(localStorage.getItem('daftarPembelian') || '[]');
+daftar.push({ nama: namaPembeli, waktu: new Date().toLocaleString('id-ID') });
+localStorage.setItem('daftarPembelian', JSON.stringify(daftar));
+
+// Tampilkan di halaman
+document.write(`
+  <h3>Halo, ${namaPembeli}!</h3>
+  <p>Terima kasih atas pembelian Anda.</p>
+  <hr>
+  <h4>Daftar Pembelian:</h4>
+  <ul>
+    ${daftar.map(item => `<li>${item.nama} — ${item.waktu}</li>`).join('')}
+  </ul>
+`);
+</script>
+  
 </body>
 </html>
