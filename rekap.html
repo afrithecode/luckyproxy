@@ -193,26 +193,39 @@ function renderRekap() {
 }
 </script>
 <script>
-// Ambil nama dari link
-const params = new URLSearchParams(window.location.search);
-const namaPembeli = params.get('nama') || 'Pembeli';
+document.addEventListener('DOMContentLoaded', () => {
+  // 1. Ambil nama dari link
+  const params = new URLSearchParams(window.location.search);
+  const namaLink = params.get('nama');
 
-// Simpan ke daftar rekap (sementara)
-let daftar = JSON.parse(localStorage.getItem('daftarPembelian') || '[]');
-daftar.push({ nama: namaPembeli, waktu: new Date().toLocaleString('id-ID') });
-localStorage.setItem('daftarPembelian', JSON.stringify(daftar));
+  if (namaLink) {
+    // 2. Otomatis isi kolom nama
+    const inputNama = document.getElementById('adminName');
+    if (inputNama) inputNama.value = namaLink;
 
-// Tampilkan di halaman
-document.write(`
-  <h3>Halo, ${namaPembeli}!</h3>
-  <p>Terima kasih atas pembelian Anda.</p>
-  <hr>
-  <h4>Daftar Pembelian:</h4>
-  <ul>
-    ${daftar.map(item => `<li>${item.nama} — ${item.waktu}</li>`).join('')}
-  </ul>
-`);
-</script>
+    // 3. Simpan nama untuk tampil setelah login
+    localStorage.setItem('namaOtomatis', namaLink);
+  }
+
+  // === Tambahkan fungsi simpan ke daftar saat login ===
+  const tombolMasuk = document.querySelector('button[onclick="doLogin()"]');
+  if (tombolMasuk) {
+    tombolMasuk.addEventListener('click', () => {
+      const namaSimpan = localStorage.getItem('namaOtomatis');
+      if (namaSimpan) {
+        let daftar = JSON.parse(localStorage.getItem('daftarPembelian') || '[]');
+        daftar.push({
+          nama: namaSimpan,
+          waktu: new Date().toLocaleString('id-ID')
+        });
+        localStorage.setItem('daftarPembelian', JSON.stringify(daftar));
+        localStorage.removeItem('namaOtomatis'); // Hapus agar tidak dobel
+      }
+    });
+  }
+});
+                                </script>
+  
   
 </body>
 </html>
